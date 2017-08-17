@@ -1,3 +1,4 @@
+package estructuras2017gr4;
 
 public interface LinearList <T>{
     boolean isEmpty();

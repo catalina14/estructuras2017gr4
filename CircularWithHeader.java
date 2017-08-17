@@ -1,79 +1,95 @@
 package estructuras2017gr4;
 
+/**
+ * Created by ivanc on 16/08/2017.
+ */
+
 import java.util.*;
 
-public class ArrayLinearList<T> implements LinearList<T>, Iterable<T>{
-    //fields
-    protected T[] element; // array of elements
-    protected int size; //number of elements in the array
+public class CircularWithHeader<T> implements LinearList<T>{
+    protected ChainNode<T> headerNode;
+    protected int size;
 
-    //constructors
-    public ArrayLinearList(int initialCapacity){
-        if(initialCapacity < 1) throw new IllegalArgumentException("Initial Capacity must be >= 1");
-        element = (T[]) new Object[initialCapacity];
+    public CircularWithHeader(){
+        headerNode = new ChainNode<T>();
+        headerNode.next = headerNode;
         size = 0;
     }
-    public ArrayLinearList(){
-        this(10);
+
+    public boolean isEmpty(){
+        return size==0;
     }
 
-    //methods
-    public boolean isEmpty(){
-        return size == 0;
-    }
     public int size(){
         return size;
     }
+
     void checkIndex(int i){
-        if(i < 0 || i >= size)
+        if(i<0 || i>=size)
             throw new IndexOutOfBoundsException("index = " + i + " size = " + size);
     }
+
     public T get(int i){
         checkIndex(i);
-        return element[i];
+        ChainNode<T> currentNode = headerNode.next;
+        for(int j=0; j<i; j++)
+            currentNode = currentNode.next;
+        return currentNode.element;
     }
-    public int indexOf(T x){
-        for(int i =0; i<size; i++)
-            if(element[i].equals(x))
-                return i;
-        return -1;
+
+    public int indexOf(T x) {
+        headerNode.element = x;
+        ChainNode<T> currentNode = headerNode.next;
+        int index = 0;
+        while(!currentNode.element.equals(x)){
+            currentNode = currentNode.next;
+            index++;
+        }
+        if(currentNode == headerNode)
+            return -1;
+        else
+            return index;
     }
-    public T remove(int i){
-        checkIndex(i);
-        T removedElement = element[i];
-        for(int j = i + 1; j<size; j++)
-            element[j - 1] = element[j];
-        element[--size] = null;
+
+    public T remove(int index){
+        checkIndex(index);
+        T removedElement;
+        ChainNode<T> q = headerNode;
+        for(int i = 0; i<index ;i++)
+            q= q.next;
+        removedElement = q.next.element;
+        q.next = q.next.next;
+
+        size--;
         return removedElement;
     }
-    public void add(int i, T x){
+
+    public void add(int i, T theElement){
         if(i<0 || i>size)
             throw new IndexOutOfBoundsException("index = " + i + " size = " + size);
-        if(size == element.length){
-            T[] old = element;
-            element = (T[]) new Object[2*size];
-            System.arraycopy(old, 0, element, 0, size);
-        }
-        for(int j = size - 1; j>=i; j--)
-            element[j+1] = element[j];
 
-        element[i] = x;
+        ChainNode<T> p = headerNode;
+        for(int j =0 ; j < i; j++)
+            p = p.next;
+        p.next = new ChainNode<T>(theElement, p.next);
         size++;
     }
+
     public String toString(){
         StringBuilder s = new StringBuilder("[");
-        for(T x: this)
-            s.append(Objects.toString(x) + ", ");
+        ChainNode<T> currentNode = headerNode.next;
+        while(currentNode != headerNode) {
+            s.append(Objects.toString(currentNode.element) + ", ");
+            currentNode = currentNode.next;
+        }
         if(size > 0)
             s.setLength(s.length() - 2);
         s.append("]");
         return new String(s);
     }
-    public Iterator<T> iterator(){
-        return new ArrayLinearListIterator<T> (this);
-    }
+
     public static void main(String[] args){
-        ArrayLinearList<Integer> x = new ArrayLinearList<>();
+        CircularWithHeader<Integer> x = new CircularWithHeader<>();
         System.out.println("Initial size is " + x.size());
         if(x.isEmpty())
             System.out.println("The list is empty");
@@ -84,10 +100,6 @@ public class ArrayLinearList<T> implements LinearList<T>, Iterable<T>{
         x.add(2, new Integer(4));
         System.out.println("List size is " + x.size());
         System.out.println("The list is " + x);
-        Iterator y = x.iterator();
-        while(y.hasNext())
-            System.out.print(y.next() + " ");
-        System.out.println();
         int index = x.indexOf(new Integer(4));
         if(index < 0)
             System.out.println("4 not found");
@@ -107,4 +119,5 @@ public class ArrayLinearList<T> implements LinearList<T>, Iterable<T>{
         else System.out.println("The list is not empty");
         System.out.println("List size is " + x.size());
     }
+
 }

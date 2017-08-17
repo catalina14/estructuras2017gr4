@@ -1,63 +1,75 @@
 package estructuras2017gr4;
 
 import java.util.*;
+/**
+ * Created by ivanc on 15/08/2017.
+ */
+public class Chain<T> implements LinearList<T>, Iterable<T> {
+    protected ChainNode<T> firstNode;
+    protected int size;
 
-public class ArrayLinearList<T> implements LinearList<T>, Iterable<T>{
-    //fields
-    protected T[] element; // array of elements
-    protected int size; //number of elements in the array
-
-    //constructors
-    public ArrayLinearList(int initialCapacity){
-        if(initialCapacity < 1) throw new IllegalArgumentException("Initial Capacity must be >= 1");
-        element = (T[]) new Object[initialCapacity];
+    public Chain(){
+        firstNode = null;
         size = 0;
     }
-    public ArrayLinearList(){
-        this(10);
-    }
 
-    //methods
     public boolean isEmpty(){
-        return size == 0;
+        return size==0;
     }
     public int size(){
         return size;
     }
     void checkIndex(int i){
-        if(i < 0 || i >= size)
+        if(i<0 || i>=size)
             throw new IndexOutOfBoundsException("index = " + i + " size = " + size);
     }
     public T get(int i){
         checkIndex(i);
-        return element[i];
+        ChainNode<T> currentNode = firstNode;
+        for(int j = 0; j<i; j++)
+            currentNode = currentNode.next;
+        return currentNode.element;
     }
     public int indexOf(T x){
-        for(int i =0; i<size; i++)
-            if(element[i].equals(x))
-                return i;
-        return -1;
+        ChainNode<T> currentNode = firstNode;
+        int i = 0;
+        while(currentNode != null && !currentNode.element.equals(x)){
+            currentNode = currentNode.next;
+            i++;
+        }
+        if(currentNode == null)
+            return -1;
+        else
+            return i;
     }
     public T remove(int i){
         checkIndex(i);
-        T removedElement = element[i];
-        for(int j = i + 1; j<size; j++)
-            element[j - 1] = element[j];
-        element[--size] = null;
+        T removedElement;
+        if(i == 0){
+            removedElement = firstNode.element;
+            firstNode = firstNode.next;
+        }
+        else{
+            ChainNode<T> q = firstNode;
+            for(int j = 0; j< i - 1; j++)
+                q = q.next;
+            removedElement = q.next.element;
+            q.next = q.next.next;
+        }
+        size--;
         return removedElement;
     }
     public void add(int i, T x){
         if(i<0 || i>size)
             throw new IndexOutOfBoundsException("index = " + i + " size = " + size);
-        if(size == element.length){
-            T[] old = element;
-            element = (T[]) new Object[2*size];
-            System.arraycopy(old, 0, element, 0, size);
+        if(i==0)
+            firstNode = new ChainNode<T> (x, firstNode);
+        else{
+            ChainNode<T> p = firstNode;
+            for(int j=0; j<i-1; j++)
+                p = p.next;
+            p.next = new ChainNode<T>(x, p.next);
         }
-        for(int j = size - 1; j>=i; j--)
-            element[j+1] = element[j];
-
-        element[i] = x;
         size++;
     }
     public String toString(){
@@ -70,10 +82,10 @@ public class ArrayLinearList<T> implements LinearList<T>, Iterable<T>{
         return new String(s);
     }
     public Iterator<T> iterator(){
-        return new ArrayLinearListIterator<T> (this);
+        return new ChainIterator(firstNode);
     }
     public static void main(String[] args){
-        ArrayLinearList<Integer> x = new ArrayLinearList<>();
+        Chain<Integer> x = new Chain<>();
         System.out.println("Initial size is " + x.size());
         if(x.isEmpty())
             System.out.println("The list is empty");
@@ -86,7 +98,7 @@ public class ArrayLinearList<T> implements LinearList<T>, Iterable<T>{
         System.out.println("The list is " + x);
         Iterator y = x.iterator();
         while(y.hasNext())
-            System.out.print(y.next() + " ");
+            System.out.print( y.next() + " ");
         System.out.println();
         int index = x.indexOf(new Integer(4));
         if(index < 0)
